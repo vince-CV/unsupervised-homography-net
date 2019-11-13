@@ -6,8 +6,9 @@ import matplotlib.pyplot as plt
 from skimage import io 
 ###############################################################
 # Changable parameter
-SCALE_H = True
-# scale_H:# The indices of the grid of the target output is scaled to [-1, 1]. Set False to stay in normal mode 
+SCALE_H = True 
+# scale_H:# The indices of the grid of the target output is
+# scaled to [-1, 1]. Set False to stay in normal mode 
 def _meshgrid(height, width, scale_H = SCALE_H):
     if scale_H:
         x_t, y_t = np.meshgrid(np.linspace(-1, 1, width),
@@ -92,7 +93,6 @@ def _interpolate(im, x, y, out_size, scale_H = SCALE_H):
     # print '--shape of out:', out.shape
     return out 
 
-
 def _transform(theta, input_dim, out_size):
     height, width = input_dim.shape[0], input_dim.shape[1]
     theta = np.reshape(theta, (3, 3))
@@ -140,9 +140,9 @@ def numpy_transformer(img, H, out_size, scale_H = SCALE_H):
     if scale_H:
         H_transformed = np.dot(np.dot(np.linalg.inv(M), np.linalg.inv(H)), M)
         # print 'H_transformed:', H_transformed 
-        img2 = _transform(H_transformed, img, [h, w])
+        img2 = _transform(H_transformed, img, [h,w])
     else:
-        img2 = _transform(np.linalg.inv(H), img, [h, w])
+        img2 = _transform(np.linalg.inv(H), img, [h,w])
     return img2 
 
 

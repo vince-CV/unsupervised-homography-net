@@ -17,15 +17,15 @@ RHO = 45
 PATCH_SIZE = 128
 
 # Synthetic data directories
-DATA_PATH = "C:/Users/xwen2/Desktop/HomoNet-Unsupervised homography estimation/data/synthetic/" + str(RHO) + '/'
+DATA_PATH = "C:/Users/xwen2/Desktop/HomoNet/data/synthetic/" + str(RHO) + '/'
 
 if not os.path.exists(DATA_PATH):
   os.makedirs(DATA_PATH)
 
-I_DIR       = DATA_PATH + 'I/'                          
-I_PRIME_DIR = DATA_PATH + 'I_prime/'                  
-PTS1_FILE         = os.path.join(DATA_PATH,'pts1.txt')
-FILENAMES_FILE    = os.path.join(DATA_PATH,'train_synthetic.txt')
+I_DIR = DATA_PATH + 'I/' # Large image
+I_PRIME_DIR = DATA_PATH + 'I_prime/' # Large image
+PTS1_FILE = os.path.join(DATA_PATH,'pts1.txt')
+FILENAMES_FILE = os.path.join(DATA_PATH,'train_synthetic.txt')
 GROUND_TRUTH_FILE = os.path.join(DATA_PATH,'gt.txt')
 
 TEST_PTS1_FILE = os.path.join(DATA_PATH,'test_pts1.txt')
@@ -33,9 +33,9 @@ TEST_FILENAMES_FILE = os.path.join(DATA_PATH,'test_synthetic.txt')
 TEST_GROUND_TRUTH_FILE = os.path.join(DATA_PATH,'test_gt.txt')
 
 # Log and model directories
-MAIN_LOG_PATH = 'C:/Users/xwen2/Desktop/HomoNet-Unsupervised homography estimation/'
+MAIN_LOG_PATH =  "C:/Users/xwen2/Desktop/HomoNet/"
 LOG_DIR       = MAIN_LOG_PATH + "logs/"
-MODEL_DIR     = MAIN_LOG_PATH + "models/"
+MODEL_DIR     = MAIN_LOG_PATH + "models/synthetic_models"
 
 # Where to save visualization images (for report)
 RESULTS_DIR   = MAIN_LOG_PATH + "results/synthetic/report/"
@@ -48,7 +48,7 @@ def str2bool(s):
 
 parser = argparse.ArgumentParser()
 parser.add_argument('--mode',          type=str, default='train', help='Train or test', choices=['train', 'test'])
-parser.add_argument('--loss_type',     type=str, default='l1_loss', help='Loss type', choices=['h_loss', 'rec_loss', 'ssim_loss', 'l1_loss', 'l1_smooth_loss', 'ncc_loss'])
+parser.add_argument('--loss_type',     type=str, default='h_loss', help='Loss type', choices=['h_loss', 'rec_loss', 'ssim_loss', 'l1_loss', 'l1_smooth_loss', 'ncc_loss'])
 parser.add_argument('--use_batch_norm',type=str2bool, default='False', help='Use batch_norm?')
 parser.add_argument('--leftright_consistent_weight', type=float, default=0, help='UUse left right consistent in loss function? Set a small weight for loss(I2_to_I1 - I1)')
 parser.add_argument('--augment_list', nargs='+', default=AUGMENT_LIST, help='List of augmentations')
@@ -70,26 +70,24 @@ parser.add_argument('--test_gt_file',  type=str, default=TEST_GROUND_TRUTH_FILE,
 parser.add_argument('--filenames_file',     type=str, default=FILENAMES_FILE, help='File that contains all names of files, for training')
 parser.add_argument('--test_filenames_file',type=str, default=TEST_FILENAMES_FILE, help='File that contains all names of files for evaluation')
 
-parser.add_argument('--visual',        type=str2bool, default='false', help='Visualize obtained images to debug')
+parser.add_argument('--visual',        type=str2bool, default='True', help='Visualize obtained images to debug')
 parser.add_argument('--save_visual',   type=str2bool, default='True', help='Save visual images for report')
 
 parser.add_argument('--img_w',         type=int, default=WIDTH)
 parser.add_argument('--img_h',         type=int, default=HEIGHT)
 parser.add_argument('--patch_size',    type=int, default=PATCH_SIZE)
-parser.add_argument('--batch_size',    type=int, default=6)
+parser.add_argument('--batch_size',    type=int, default=32)
 parser.add_argument('--max_epoches',   type=int, default=150)
-parser.add_argument('--lr',            type=float, default=1e-4, help='Max learning rate')
+parser.add_argument('--lr',            type=float, default=5e-4, help='Max learning rate')
 parser.add_argument('--min_lr',        type=float, default=.9e-4, help='Min learning rate')
 
 parser.add_argument('--resume',        type=str2bool, default='False', help='True: restore the existing model. False: retrain')
 parser.add_argument('--retrain',       type=str2bool, default='False', help='True: restore the existing model, use max learning rate')
-
-
-
+print('<==================== Loading data ===================>\n')
+ 
 args = parser.parse_args()
 # Update model_dir
 model_prefix_name = args.loss_type
-
 for augment_type in args.augment_list:
   model_prefix_name += '_' + augment_type
 
@@ -98,7 +96,6 @@ if args.mode=='test':
 
 args.model_dir = os.path.join(args.model_dir, model_prefix_name)
 args.log_dir = os.path.join(args.log_dir, model_prefix_name)
-
 if args.mode=='test':
   args.log_dir = os.path.join(args.log_dir, model_prefix_name + 'test/')
 
@@ -110,34 +107,35 @@ if not args.resume:
 
 if not os.path.exists(args.model_dir):
   os.makedirs(args.model_dir)
-
 if not os.path.exists(args.log_dir):
   os.makedirs(args.log_dir)
 
 if not os.path.exists(args.results_dir):
   os.makedirs(args.results_dir)
 
+# Visualize online
 if args.visual:
   plt.ion()
 
-
-train_dataloader_params=dataloader_params(data_path = args.data_path,
-                                        filenames_file = args.filenames_file,
-                                        pts1_file      = args.pts1_file,
-                                        gt_file        = args.gt_file,
-                                        mode           = args.mode,
-                                        batch_size     = args.batch_size,
-                                        img_h          = args.img_h,
-                                        img_w          = args.img_w,
-                                        patch_size     = args.patch_size,
-                                        augment_list   = args.augment_list,
-                                        do_augment     = args.do_augment )
-
+train_dataloader_params=dataloader_params(data_path=args.data_path,
+                                        filenames_file=args.filenames_file,
+                                        pts1_file=args.pts1_file,
+                                        gt_file=args.gt_file,
+                                        mode=args.mode,
+                                        batch_size=args.batch_size,
+                                        img_h=args.img_h,
+                                        img_w=args.img_w,
+                                        patch_size=args.patch_size,
+                                        augment_list=args.augment_list,
+                                        do_augment=args.do_augment)
 
 num_test_data = utils.count_text_lines(args.test_filenames_file)
+
+print('===> There are totally %d test files'%(num_test_data))
+
 test_batch_size=np.min([num_test_data, args.batch_size])
 
-test_dataloader_params=dataloader_params(data_path = args.data_path,
+test_dataloader_params=dataloader_params(data_path=args.data_path,
                                         filenames_file=args.test_filenames_file,
                                         pts1_file=args.test_pts1_file,
                                         gt_file=args.test_gt_file,
@@ -151,20 +149,22 @@ test_dataloader_params=dataloader_params(data_path = args.data_path,
 
 
 def train():
-
-  with tf.Graph().as_default(), tf.device('/gpu:0'): 
+  # Overrides the current default graph for the lifetime of the context
+  with tf.Graph().as_default(), tf.device('/gpu:0'): # Use GPU 0
     global_step = tf.Variable(0, trainable=False)
 
+    # Training parameters
+    # Count the number of training & eval data
     num_data = utils.count_text_lines(args.filenames_file)
-    print('===> Train: There are totally %d training files'%(num_data)) # 100 iamges
+    print('===> Train: There are totally %d training files'%(num_data))
 
-    num_total_steps = 150000
+    num_total_steps = 15000
 
     # Optimizer. Use exponential decay: decayed_lr = lr* decay_rate^ (global_steps/ decay_steps)
     decay_rate = 0.96
 
     decay_steps = (math.log(decay_rate) * num_total_steps)/math.log(args.min_lr*1.0/args.lr)
-    print('===> args.lr:', args.lr, args.min_lr)
+    print('args lr:', args.lr, args.min_lr)
     print('===> Decay steps:', decay_steps)
     learning_rate = tf.train.exponential_decay(args.lr, global_step, int(decay_steps), decay_rate, staircase=True)
 
@@ -183,18 +183,16 @@ def train():
       opt_step = tf.train.AdamOptimizer(learning_rate)
 
     # Load data
-    print('===> Load training data')
-    data_loader = Dataloader(train_dataloader_params, shuffle=True) # shuffle
-    print('===> Load training data DONE!')
+    data_loader = Dataloader(train_dataloader_params, shuffle=False) # shuffle
 
-    I1_batch     =  data_loader.I1_batch
-    I2_batch     =  data_loader.I2_batch
+    I1_batch =  data_loader.I1_batch
+    I2_batch =  data_loader.I2_batch
     I1_aug_batch =  data_loader.I1_aug_batch
     I2_aug_batch =  data_loader.I2_aug_batch
-    I_batch        =  data_loader.I_batch
-    I_prime_batch  = data_loader.I_prime_batch
+    I_batch  =  data_loader.I_batch
+    I_prime_batch = data_loader.I_prime_batch
     pts1_batch     = data_loader.pts1_batch
-    gt_batch       = data_loader.gt_batch
+    gt_batch      = data_loader.gt_batch
     patch_indices_batch = data_loader.patch_indices_batch
 
     # Split on multiple GPU
@@ -577,7 +575,7 @@ class TestHomography(object):
     print (step, h_total_loss_value/(step+1), l1_total_loss_value/(step+1), 100*total_num_fail_value/(step+1)/args.batch_size)
 
     tops_list = utils.find_percentile(h_losses_array)
-    print('===> Percentile Values: (20, 50, 80, 100): ')
+    print('===> Percentile Values: (20, 50, 80, 100):')
     print(tops_list)
     print('======> End! ====================================')
 
@@ -587,7 +585,7 @@ def test_homography():
   exit()
 
 def test_get_mean_std():
-  train_data_loader = Dataloader(train_dataloader_params, shuffle = True)
+  train_data_loader = Dataloader(train_dataloader_params, shuffle=False)
   train_data_loader.get_mean_std()
   exit()
 

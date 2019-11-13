@@ -20,8 +20,9 @@ dataloader_params = namedtuple('parameters',
                               'patch_size,'
                               'augment_list,'
                               'do_augment,')
+# Create an extended version to deal with real data set where
 
-# Create an extended version to deal with real data set where a data sample consist of images of full-size, small size and crop (patch)
+# a data sample consist of images of full-size, small size and crop (patch)
 extended_dataloader_params = namedtuple('extended_parameters',
                               'data_path,'
                               'filenames_file,'
@@ -42,6 +43,9 @@ def string_length_tf(t):
     This function returns len of a string"""
     return tf.py_func(len, [t], [tf.int64])
 
+
+
+
 def read_img_and_gt(filenames_file, pts1_file, gt_file, params):
 
   with open(pts1_file, 'r') as pts1_f:
@@ -52,7 +56,6 @@ def read_img_and_gt(filenames_file, pts1_file, gt_file, params):
 
   with open(filenames_file, 'r') as img_f:
     img_array = img_f.readlines()
-
   img_array = [x.strip() for  x in img_array]
   img_array = [x.split() for x in img_array] # Use x.split()[0] if assuming image left and right have same name
 
@@ -62,7 +65,6 @@ def read_img_and_gt(filenames_file, pts1_file, gt_file, params):
 
   with open(gt_file, 'r') as gt_f:
     gt_array = gt_f.readlines()
-
   gt_array = [x.strip() for  x in gt_array]
   gt_array = [x.split() for x in gt_array]
   gt_array = np.array(gt_array).astype('float64')
@@ -73,7 +75,7 @@ def read_img_and_gt(filenames_file, pts1_file, gt_file, params):
 
 class Dataloader(object):
   """Load synthetic data"""
-  def __init__(self, params, shuffle=True):
+  def __init__(self, params,shuffle=True):
     self.data_path = params.data_path
     self.params = params
     self.mode = params.mode
@@ -93,38 +95,35 @@ class Dataloader(object):
     # Indices of pixels of the patch w.r.t the large image
     self.patch_indices_batch = None
     self.pts1_file = params.pts1_file
-    self.gt_file   = params.gt_file
+    self.gt_file =  params.gt_file
     self.mean_I = tf.constant([118.93, 113.97, 102.60], shape=[1, 1, 3])
-    self.std_I  = tf.constant([69.85, 68.81, 72.45], shape=[1, 1, 3])
+    self.std_I = tf.constant([69.85, 68.81, 72.45], shape=[1, 1, 3])
     self.mean_I_prime = tf.constant([96.0, 91.38,  81.92], shape=[1, 1, 3])
-    self.std_I_prime  = tf.constant([77.45, 75.17, 75.18], shape=[1, 1, 3])
-    self.mean_I1      = tf.constant(np.mean([118.93, 113.97, 102.60]), dtype=tf.float32)
-    self.std_I1       = tf.constant(np.mean([69.85, 68.81, 72.45]), dtype=tf.float32)
+    self.std_I_prime = tf.constant([77.45, 75.17, 75.18], shape=[1, 1, 3])
+    self.mean_I1 = tf.constant(np.mean([118.93, 113.97, 102.60]), dtype=tf.float32)
+    self.std_I1 = tf.constant(np.mean([69.85, 68.81, 72.45]), dtype=tf.float32)
 
     # Constants used to extract I1_aug, I2_aug from I_aug
-    print("+++++++++++++++++++++++++++++++++++++ Constants used to extract I1_aug, I2_aug from I_aug +++++++++++++++++++++++++++++++++++++++++++++++++++++")
     y_t = tf.range(0, self.params.batch_size*self.params.img_w*self.params.img_h, self.params.img_w*self.params.img_h)
-    z   = tf.tile(tf.expand_dims(y_t,[1]),[1,self.params.patch_size*self.params.patch_size])
+    z =  tf.tile(tf.expand_dims(y_t,[1]),[1,self.params.patch_size*self.params.patch_size])
     self.batch_indices_tensor = tf.reshape(z, [-1]) # Add these value to patch_indices_batch[i] for i in range(num_pairs) # [BATCH_SIZE*WIDTH*HEIGHT]
 
+
     # Read to arrays
-    print("+++++++++++++++++++++++++++++++++++++++++++ Read to arrays +++++++++++++++++++++++++++++++++++++++++++++++++++++++++++")
     img_np, pts1_np, gt_np = read_img_and_gt(self.params.filenames_file, self.pts1_file, self.gt_file, self.params)
 
     # Convert to tensor
-    print("+++++++++++++++++++++++++++++++++++++++++++ convert to tensor +++++++++++++++++++++++++++++++++++++++++++++++++++++++++++")
-    img_files = tf.convert_to_tensor(img_np , dtype=tf.string)
-    pts1_tf   = tf.convert_to_tensor(pts1_np, dtype=tf.float32) 
+    img_files = tf.convert_to_tensor(img_np, dtype=tf.string)
+    pts1_tf    = tf.convert_to_tensor(pts1_np, dtype=tf.float32) # N x 2
 
     if self.gt_file:
-      gt_tf       = tf.convert_to_tensor(gt_np, dtype=tf.float32)
-      input_queue = tf.train.slice_input_producer([img_files, pts1_tf, gt_tf], shuffle = shuffle)
-      gt_batch    = input_queue[2]
+      gt_tf    = tf.convert_to_tensor(gt_np, dtype=tf.float32)
+      input_queue = tf.train.slice_input_producer([img_files, pts1_tf, gt_tf], shuffle=shuffle)
+      gt_batch = input_queue[2]
     else:
-      input_queue = tf.train.slice_input_producer([img_files, pts1_tf], shuffle = shuffle)
+      input_queue = tf.train.slice_input_producer([img_files, pts1_tf], shuffle=shuffle)
 
     # image names
-    print("+++++++++++++++++++++++++++++++++++++++++++ image names +++++++++++++++++++++++++++++++++++++++++++++++++++++++++++")
     split_line  = tf.string_split(input_queue[0]).values
     filename_batch = split_line
 
@@ -135,7 +134,6 @@ class Dataloader(object):
     # Finding patch_indices_tf. Does not work with large data since out of memory
     ## Find indices of the pixels in the patch w.r.t the large image
     ## All patches have the same size so their pixels have the same base indices
-    print("+++++++++++++++++++++++++++++++++++++++++++ get_mesh_grid_per_img +++++++++++++++++++++++++++++++++++++++++++++++++++++++++++")
     x_t_flat, y_t_flat = get_mesh_grid_per_img(params.patch_size, params.patch_size)
 
 
@@ -146,7 +144,6 @@ class Dataloader(object):
     I_prime_path = tf.string_join([self.data_path,'I_prime/', split_line[1]])
 
     # Check if input images are full one or not
-    print("+++++++++++++++++++++++++++++++++++++++++++ Check if input images are full +++++++++++++++++++++++++++++++++++++++++++++++++++++++++++")
     try:
       self.full_img_h = self.params.full_img_h
       self.full_img_w = self.params.full_img_w
@@ -155,17 +152,14 @@ class Dataloader(object):
       self.full_img_h = self.img_h
       self.full_img_w = self.img_w
       pass
-
-    print("+++++++++++++++++++++++++++++++++++++++++++ full_img_h x full_img_w, and check  +++++++++++++++++++++++++++++++++++++++++++++++++++++++++++")
     # Just obtain images with full_img_h x full_img_w, and check later if the size is identical
-    full_I       = self.read_image(I_path,       [self.full_img_h, self.full_img_w], channels=3)
+    full_I = self.read_image(I_path, [self.full_img_h, self.full_img_w], channels=3)
     full_I_prime = self.read_image(I_prime_path, [self.full_img_h, self.full_img_w], channels=3)
 
     full_I.set_shape([None, None, 3])
     full_I_prime.set_shape([None, None, 3])
 
     # Augment images with artifacts
-    print("++++++++++++++++++++++++++++++++++++ Augment images with artifacts ++++++++++++++++++++++++++++++++++++++++++")
     do_augment = tf.random_uniform([], 0, 1)
     # Training: use joint augmentation (images in one pair are inserted same noise)
     # Test: use disjoint augmentation (images in one pair are inserted different noise)
@@ -234,12 +228,9 @@ class Dataloader(object):
 
     # If ground truth of homography is given (in synthetic case - both training and testing, in aerial image case - only test)
     if self.gt_file:
-      self.full_I_batch, self.full_I_prime_batch, self.I1_batch, self.I2_batch, self.I1_aug_batch, self.I2_aug_batch, self.I_batch, self.I_prime_batch, self.pts1_batch, self.gt_batch, self.patch_indices_batch = tf.train.shuffle_batch([full_I_aug, full_I_prime_aug, I1, I2, I1_aug, I2_aug, I_aug, I_prime_aug, pts1_batch, gt_batch, patch_indices_tf], 
-                         self.params.batch_size,
-                         self.params.batch_size*10, 
-                         self.params.batch_size*4, 
-                         20) 
-                         # number of threads = 20
+      self.full_I_batch, self.full_I_prime_batch, self.I1_batch, self.I2_batch, self.I1_aug_batch, self.I2_aug_batch, self.I_batch, self.I_prime_batch, self.pts1_batch, self.gt_batch, self.patch_indices_batch = tf.train.shuffle_batch([full_I_aug, full_I_prime_aug, I1, I2, I1_aug, I2_aug, I_aug, I_prime_aug, pts1_batch, gt_batch, patch_indices_tf], self.params.batch_size,
+                         self.params.batch_size*10, self.params.batch_size*4, 20) # number of threads = 20
+
     else:
       self.full_I_batch, self.full_I_prime_batch, self.I1_batch, self.I2_batch, self.I1_aug_batch, self.I2_aug_batch, self.I_batch, self.I_prime_batch, self.pts1_batch, self.patch_indices_batch = tf.train.shuffle_batch([full_I_aug, full_I_prime_aug,I1, I2, I1_aug, I2_aug, I_aug, I_prime_aug, pts1_batch, patch_indices_tf], self.params.batch_size, self.params.batch_size*10, self.params.batch_size*4, 20) # number of threads = 20
 
@@ -262,7 +253,7 @@ class Dataloader(object):
 
     # Convert to tensor
     img_files = tf.convert_to_tensor(img_np, dtype=tf.string)
-    input_queue = tf.train.slice_input_producer([img_files], shuffle=True)
+    input_queue = tf.train.slice_input_producer([img_files], shuffle=False)
 
     # image names
     split_line  = tf.string_split(input_queue[0]).values
@@ -280,8 +271,8 @@ class Dataloader(object):
     batch_size = 100
 
     I_batch, I_prime_batch = tf.train.shuffle_batch([I, I_prime], batch_size, batch_size*10, 0, 32) # 32 threads
-    mean_I_batch, std_I_batch = tf.nn.moments(I_batch, [0, 1, 2])
-    mean_I_prime_batch, std_I_prime_batch = tf.nn.moments(I_prime_batch, [0, 1, 2])
+    mean_I_batch, std_I_batch = tf.nn.moments(I_batch, [0, 1,2])
+    mean_I_prime_batch, std_I_prime_batch = tf.nn.moments(I_prime_batch, [0, 1,2])
 
     std_I_batch = tf.sqrt(std_I_batch)
     std_I_prime_batch = tf.sqrt(std_I_prime_batch)

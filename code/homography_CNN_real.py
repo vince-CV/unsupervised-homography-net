@@ -225,13 +225,10 @@ def train():
 
     I1_batch =  data_loader.I1_batch
     I2_batch =  data_loader.I2_batch
-
     I1_aug_batch =  data_loader.I1_aug_batch
     I2_aug_batch =  data_loader.I2_aug_batch
-
     I_batch  =  data_loader.I_batch
     I_prime_batch = data_loader.I_prime_batch
-    
     pts1_batch     = data_loader.pts1_batch
     patch_indices_batch = data_loader.patch_indices_batch
 

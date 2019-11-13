@@ -204,23 +204,23 @@ def dataCollection(args):
       os.remove(args.gt_file)
       os.remove(args.pts1_file)
       os.remove(args.filenames_file)
-      print('-- Current {} existed. Deleting..!'.format(args.gt_file))
+      print'-- Current {} existed. Deleting..!'.format(args.gt_file)
       shutil.rmtree(args.I_dir, ignore_errors=True)
       if args.I_prime_dir is not None:
         shutil.rmtree(args.I_prime_dir, ignore_errors=True)
     except :
-      print('-- Train: Current {} not existed yet!'.format(args.gt_file))
+      print'-- Train: Current {} not existed yet!'.format(args.gt_file)
   else:
-    print( '--- Appending to existing data---')
+    print '--- Appending to existing data---'
 
   if (args.resume == 'N' or args.resume == 'n') and args.mode=='test' and not args.debug:
     try:
       os.remove(args.test_gt_file)
       os.remove(args.test_pts1_file)
       os.remove(args.test_filenames_file)
-      print('-- Test: Current {} existed. Deleting..!'.format(args.test_gt_file))
+      print'-- Test: Current {} existed. Deleting..!'.format(args.test_gt_file)
     except :
-      print('-- Test: Current {} not existed yet!'.format(args.test_gt_file))
+      print'-- Test: Current {} not existed yet!'.format(args.test_gt_file)
   else:
     pass
   if not args.debug:
@@ -328,7 +328,7 @@ def main():
     args.raw_data_path = args.test_raw_data_path
     args.ignore_list = test_ignore_list
 
-  print ('<================= Generating Data .... =================>\n')
+  print '<================= Generating Data .... =================>\n'
 
   dataCollection(args)
 

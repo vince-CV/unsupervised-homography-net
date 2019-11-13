@@ -128,7 +128,7 @@ class HomographyModel(object):
       fc1 = slim.fully_connected(out_conv_flat, 1024, scope='fc1')
       dropout_fc1 = slim.dropout(fc1, keep_prob)
     with tf.variable_scope('fc2'):
-      fc2 = slim.fully_connected(dropout_fc1, 8, scope='fc2', activation_fn=None) # BATCH_SIZE x 8
+      fc2 = slim.fully_connected(dropout_fc1, 8, scope='fc2', activation_fn=None) #BATCH_SIZE x 8
 
     self.pred_h4p = fc2
 

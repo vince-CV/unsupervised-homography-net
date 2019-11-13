@@ -1,6 +1,5 @@
 # direct_homography.py
 # Homography models using direct methods
-# ECC Homography method 
 import numpy as np
 import cv2
 import matplotlib.pyplot as plt
@@ -48,7 +47,7 @@ def find_homography(img1_color, img2_color, H4p1=None, H4p2_gt=None, visual=Fals
       else:
         M_inv = M
     except:
-      print ('Error in inverse H')
+      print 'Error in inverse H'
       return np.zeros([1,4,2]), np.eye(3), 1
 
     # Apply the perspective transformation to the source image corners

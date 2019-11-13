@@ -30,6 +30,7 @@ Aux_M2  = np.array([
           [ 0 , 0 , 0 , 0  , 0 , 0 , 0 , 1 ]], dtype=np.float64)
 
 
+
 Aux_M3  = np.array([
           [0],
           [1],
@@ -39,6 +40,7 @@ Aux_M3  = np.array([
           [1],
           [0],
           [1]], dtype=np.float64)
+
 
 
 Aux_M4  = np.array([
@@ -61,6 +63,7 @@ Aux_M5  = np.array([
           [0 , 0 , 0 , 0  , 0 , 0 , 0 , 0 ],
           [0 , 0 , 0 , 0  , 0 , 0 , 0 ,-1 ],
           [0 , 0 , 0 , 0  , 0 , 0 , 0 , 0 ]], dtype=np.float64)
+
 
 
 Aux_M6  = np.array([
@@ -96,6 +99,7 @@ Aux_M72 = np.array([
           [0 , 0 , 0 , 0  , 0 , 0 ,-1 , 0 ]], dtype=np.float64)
 
 
+
 Aux_M8  = np.array([
           [0 , 1 , 0 , 0  , 0 , 0 , 0 , 0 ],
           [0 ,-1 , 0 , 0  , 0 , 0 , 0 , 0 ],
@@ -117,8 +121,10 @@ Aux_Mb  = np.array([
           [0 , 0 , 0 , 0  , 0 , 0 , 0 ,-1 ],
           [0 , 0 , 0 , 0  , 0 , 0 , 1 , 0 ]], dtype=np.float64)
 
-#_, term_width = os.popen("stty size", 'r').read().split()
-term_width = 80 # int(term_width)
+
+########################################################
+#_, term_width = os.popen('stty size', 'r').read().split()
+term_width = 6 # int(term_width)
 
 TOTAL_BAR_LENGTH = 65.
 last_time = time.time()
@@ -200,6 +206,7 @@ def format_time(seconds):
         f = '0ms'
     return f
 
+
 def save_correspondences_img(img1, img2, corr1, corr2, pred_corr2, results_dir, img_name):
   """ Save pair of images with their correspondences into a single image. Used for report"""
   # Draw prediction
@@ -216,6 +223,10 @@ def save_correspondences_img(img1, img2, corr1, corr2, pred_corr2, results_dir, 
   #cv2.putText(full_stack_images, 'RMSE %.2f'%h_loss,(800, 100), cv2.FONT_HERSHEY_SIMPLEX, 1,(0,0,255),2)
   cv2.imwrite(visual_file_name, full_stack_images)
   print('Wrote file %s', visual_file_name)
+
+
+
+
 
 def draw_matches(img1, kp1, img2, kp2, output_img_file=None, color_set=None, show=True):
     """Draws lines between matching keypoints of two images without matches.
@@ -298,6 +309,7 @@ def draw_matches(img1, kp1, img2, kp2, output_img_file=None, color_set=None, sho
 
     return new_img
 
+
 def show_image(location, title, img, width=None):
     if width is not None:
         plt.figure(figsize=(width, width))
@@ -312,6 +324,8 @@ def show_image(location, title, img, width=None):
         plt.show()
         plt.close()
 
+
+
 def find_nine_grid_points(width, height, offset=50):
   y = np.linspace(offset,height-offset,3).astype(np.int32)
   x = np.linspace(offset,width-offset,3).astype(np.int32)
@@ -323,6 +337,9 @@ def find_nine_grid_points(width, height, offset=50):
   show_nine_points = np.hstack((X, Y)).reshape([9,2])
   return show_nine_points
 
+
+
+
 def removeHiddenfile(directory_list):
   if '.' in directory_list:
     directory_list.remove('.')
@@ -332,16 +349,34 @@ def removeHiddenfile(directory_list):
     directory_list.remove('.DS_Store')
   return directory_list
 
+
 def test_progress_bar():
     total = 20000
     for i in range(total):
         progress_bar(i, total, 'printing %d'%i)
+
 
 def count_text_lines(file_path):
   f = open(file_path, 'r')
   lines =  f.readlines()
   f.close()
   return len(lines)
+
+
+# Copyright 2015 The TensorFlow Authors. All Rights Reserved.
+#
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
+#
+#     http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+
 
 def get_average_grads(tower_grads):
   average_grads = []
@@ -368,6 +403,7 @@ def get_average_grads(tower_grads):
     average_grads.append(grad_and_var)
   return average_grads
 
+
 def denorm_img(img):
   if len(img.shape) == 3:
     mean = np.array([118.93, 113.97, 102.60]).reshape([1,1,3])
@@ -376,6 +412,7 @@ def denorm_img(img):
     mean = np.mean([118.93, 113.97, 102.60])
     std  = np.mean([69.85, 68.81, 72.45])
   return img*std + mean
+
 
 def get_mesh_grid_per_img(c_w, c_h, x_start=0, y_start=0):
   """Get 1D array of indices of pixels in the image of size c_h x c_w"""
@@ -614,6 +651,7 @@ def test_batch_census_img():
       print('Corresponding census:', cencus_pixel)
 
   print('\n======> Census image:\n', census_img[:,:,:,0])
+
 
 def find_percentile(x):
   x_sorted = np.sort(x)
